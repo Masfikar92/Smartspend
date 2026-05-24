@@ -1,0 +1,1 @@
+SmartSpend adalah platform asisten keuangan pribadi berbasis kecerdasan buatan (AI) yang dirancang khusus untuk membantu generasi muda Indonesia dalam mengelola keuangan secara lebih cerdas, terstruktur, dan efisien.
