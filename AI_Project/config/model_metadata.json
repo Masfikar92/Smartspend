@@ -1,0 +1,47 @@
+{
+  "model_name": "SmartSpend_DL_Model",
+  "version": "1.0.0",
+  "input_features": [
+    "usia",
+    "jenis_kelamin",
+    "klasifikasi_wilayah",
+    "pendidikan_terakhir",
+    "status_pekerjaan",
+    "status_pernikahan",
+    "jumlah_tanggungan",
+    "provinsi_freq",
+    "pendapatan_bulanan",
+    "total_pengeluaran",
+    "rasio_tabungan_persen",
+    "skor_literasi_keuangan",
+    "cicilan_hutang",
+    "pengeluaran_makanan_pokok",
+    "pengeluaran_lauk_pauk",
+    "pengeluaran_sayur_buah",
+    "pengeluaran_jajan_makan_luar",
+    "pengeluaran_rokok_tembakau",
+    "pengeluaran_perumahan_listrik",
+    "pengeluaran_pakaian",
+    "pengeluaran_kesehatan",
+    "pengeluaran_pendidikan",
+    "pengeluaran_transportasi",
+    "pengeluaran_komunikasi",
+    "pengeluaran_hiburan_rekreasi"
+  ],
+  "input_dim": 25,
+  "output": {
+    "classification": {
+      "name": "classification_output",
+      "classes": [
+        "Cukup Baik",
+        "Keuangan Sehat",
+        "Perlu Perbaikan"
+      ]
+    },
+    "regression": {
+      "name": "regression_output",
+      "unit": "Rupiah (setelah invers log1p)",
+      "log_scale": true
+    }
+  }
+}
