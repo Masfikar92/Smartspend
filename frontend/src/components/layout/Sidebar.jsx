@@ -36,6 +36,8 @@ export default function Sidebar({ isOpen, onClose }) {
           top: 0;
           left: 0;
           height: 100vh;
+          height: 100dvh;
+          min-height: -webkit-fill-available;
           overflow: hidden;
           z-index: 50;
           transition: transform 0.25s ease;
