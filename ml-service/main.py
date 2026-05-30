@@ -20,7 +20,7 @@ ds_kmeans      = joblib.load(os.path.join(DS_DIR, "kmeans_model.pkl"))
 ds_scaler      = joblib.load(os.path.join(DS_DIR, "scaler.pkl"))
 
 app = FastAPI(title="SmartSpend ML Service")
-app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:3000"], allow_methods=["POST", "GET"], allow_headers=["*"])
+app.add_middleware(CORSMiddleware, allow_origins=["https://smartspend-production-c4da.up.railway.app"], allow_methods=["POST", "GET"], allow_headers=["*"])
 
 class AIInput(BaseModel):
     provinsi              : Optional[str]   = "DKI Jakarta"

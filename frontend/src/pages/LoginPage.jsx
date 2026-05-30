@@ -103,7 +103,7 @@ export default function LoginPage() {
         </div>
 
         <button
-          onClick={() => window.location.href = 'http://localhost:3000/api/auth/google'}
+          onClick={() => window.location.href = 'https://smartspend-production-c4da.up.railway.app/api/auth/google'}
           className="w-full border border-gray-300 rounded-xl py-3 flex items-center justify-center gap-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">
           <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" />
           Sign In dengan Google
