@@ -55,7 +55,7 @@ const PEKERJAAN_LIST = [
 const PENDIDIKAN_LIST = ['SD','SMP','SMA','D3','S1','S2','S3'];
 const PERNIKAHAN_LIST = ['Belum Menikah','Menikah','Cerai'];
 
-// ── Komponen form onboarding ──────────────────────────────────────────────────
+//Komponen form onboarding
 function OnboardingForm({ onSaved }) {
   const [form, setForm] = useState({
     provinsi: 'DKI Jakarta',
@@ -227,7 +227,7 @@ function OnboardingForm({ onSaved }) {
   );
 }
 
-// ── Komponen badge kondisi ────────────────────────────────────────────────────
+//Komponen badge kondisi
 function KondisiBadge({ kondisi }) {
   const map = {
     'Keuangan Sehat'  : { bg: '#e1f5ee', text: '#085041', border: '#12b76a', emoji: '💚' },
@@ -247,14 +247,13 @@ function KondisiBadge({ kondisi }) {
   );
 }
 
-// ── Main page ─────────────────────────────────────────────────────────────────
+//Main page
 export default function RekomendasiPage() {
-  const [profileExists, setProfileExists] = useState(null); // null = belum dicek
+  const [profileExists, setProfileExists] = useState(null); 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Cek profil dulu saat halaman dibuka
   useEffect(() => {
     const checkProfile = async () => {
       try {
@@ -286,7 +285,6 @@ export default function RekomendasiPage() {
     fetchRecommendation();
   };
 
-  // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <MainLayout>
       <style>{`
@@ -359,7 +357,7 @@ export default function RekomendasiPage() {
                 * Semua angka mencerminkan arus keuangan bulan ini · bukan total saldo
               </p>
 
-              {/* ── SECTION 1: PREDIKSI (AI model) ── */}
+              {/*SECTION 1: PREDIKSI (AI model)*/}
               <div style={{ background: 'white', borderRadius: '16px', border: '0.5px solid #e4e7ec', overflow: 'hidden' }}>
                 {/* Section header */}
                 <div style={{ padding: '18px 24px', borderBottom: '0.5px solid #e4e7ec', display: 'flex', alignItems: 'center', gap: '10px', background: 'linear-gradient(135deg, #f0f7ff, #e8f4fd)' }}>
@@ -443,7 +441,7 @@ export default function RekomendasiPage() {
                 </div>
               </div>
 
-              {/* ── SECTION 2: REKOMENDASI (DS model) ── */}
+              {/*SECTION 2: REKOMENDASI (DS model)*/}
               <div style={{ background: 'white', borderRadius: '16px', border: '0.5px solid #e4e7ec', overflow: 'hidden' }}>
                 {/* Section header */}
                 <div style={{ padding: '18px 24px', borderBottom: '0.5px solid #e4e7ec', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'linear-gradient(135deg, #f0fff8, #e1f5ee)' }}>
@@ -469,7 +467,6 @@ export default function RekomendasiPage() {
                 <div style={{ padding: '24px' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {data.cluster.rekomendasi.map((r, i) => {
-                      // Deteksi tone rekomendasi untuk warna
                       const isKritis = r.includes('KRITIS') || r.includes('TERLALU TINGGI') || r.includes('SANGAT TINGGI');
                       const isWarning = r.includes('PERLU') || r.includes('KURANGI') || r.includes('DIPANTAU');
                       const isOk = r.includes('SUDAH') || r.includes('TERKENDALI') || r.includes('TINGGI —');
@@ -496,7 +493,7 @@ export default function RekomendasiPage() {
                 </div>
               </div>
 
-              {/* ── SECTION 3: Panduan 50/30/20 ── */}
+              {/*SECTION 3: Panduan 50/30/20*/}
               <div style={{ background: 'white', borderRadius: '16px', border: '0.5px solid #e4e7ec', overflow: 'hidden' }}>
                 <div style={{ padding: '18px 24px', borderBottom: '0.5px solid #e4e7ec', display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <div style={{
@@ -577,7 +574,7 @@ export default function RekomendasiPage() {
                 </div>
               </div>
 
-              {/* ── Action buttons ── */}
+              {/*Action buttons*/}
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button onClick={fetchRecommendation} style={{
                   padding: '12px 24px', borderRadius: '10px', border: 'none',

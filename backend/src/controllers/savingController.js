@@ -1,6 +1,5 @@
 const db = require('../models/db');
 
-// Tambah target tabungan
 const addGoal = async (req, res) => {
   const { title, target_amount, deadline } = req.body;
   const user_id = req.user.id;
@@ -16,7 +15,6 @@ const addGoal = async (req, res) => {
   }
 };
 
-// Ambil semua target tabungan user
 const getGoals = async (req, res) => {
   const user_id = req.user.id;
 
@@ -31,7 +29,6 @@ const getGoals = async (req, res) => {
   }
 };
 
-// Update progress tabungan + catat ke transactions
 const updateProgress = async (req, res) => {
   const { id } = req.params;
   const { amount } = req.body;
@@ -42,7 +39,6 @@ const updateProgress = async (req, res) => {
   }
 
   try {
-    // Ambil judul target untuk description transaksi
     const [goals] = await db.query(
       'SELECT title FROM saving_goals WHERE id = ? AND user_id = ?',
       [id, user_id]
@@ -55,7 +51,6 @@ const updateProgress = async (req, res) => {
     const title = goals[0].title;
     const today = new Date().toISOString().split('T')[0];
 
-    // Jalankan keduanya — update progress dan catat transaksi
     await Promise.all([
       db.query(
         'UPDATE saving_goals SET current_amount = current_amount + ? WHERE id = ? AND user_id = ?',
@@ -74,7 +69,6 @@ const updateProgress = async (req, res) => {
   }
 };
 
-// Hapus target tabungan
 const deleteGoal = async (req, res) => {
   const { id } = req.params;
   const user_id = req.user.id;

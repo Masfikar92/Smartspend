@@ -11,7 +11,6 @@ const getRecommendation = async (req, res) => {
     const month = now.getMonth() + 1;
     const year  = now.getFullYear();
 
-    // Ambil summary pemasukan & pengeluaran bulan ini
     const [summary] = await db.query(`
       SELECT 
         SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as income,
@@ -25,7 +24,6 @@ const getRecommendation = async (req, res) => {
     const saving  = income - expense;
     const rasio   = income > 0 ? (saving / income) * 100 : 0;
 
-    // Ambil pengeluaran per kategori
     const [categories] = await db.query(`
       SELECT category, SUM(amount) as total
       FROM transactions
@@ -37,21 +35,17 @@ const getRecommendation = async (req, res) => {
     const catMap = {};
     categories.forEach(c => { catMap[c.category] = Number(c.total); });
 
-    // Ambil profil demografi user
     const [profiles] = await db.query(
       `SELECT * FROM user_profiles WHERE user_id = ? LIMIT 1`,
       [user_id]
     );
     const profile = profiles[0] || {};
 
-    // expense_for_model: exclude kategori Tabungan agar tidak bias ke model
-    // (tabungan bukan pengeluaran konsumsi, tapi sudah tercatat sebagai expense di DB)
     const tabungan_dicatat  = catMap['Tabungan'] || 0;
     const expense_for_model = expense - tabungan_dicatat;
     const saving_for_model  = income - expense_for_model;
     const rasio_for_model   = income > 0 ? (saving_for_model / income) * 100 : 0;
 
-    // Fitur keuangan untuk model (pakai nilai yang sudah di-exclude tabungan)
     const keuangan = {
       pendapatan_bulanan            : income,
       total_pengeluaran             : expense_for_model,
@@ -66,8 +60,6 @@ const getRecommendation = async (req, res) => {
       pengeluaran_jajan_makan_luar  : catMap['Makanan & Minuman'] || 0,
     };
 
-    // Breakdown 50/30/20 — pakai expense & saving aktual (include tabungan)
-    // agar user melihat gambaran cashflow yang sesungguhnya
     const kebutuhan_aktual =
       (catMap['Makanan & Minuman'] || 0) +
       (catMap['Tempat Tinggal']    || 0) +
@@ -81,7 +73,6 @@ const getRecommendation = async (req, res) => {
       (catMap['Belanja']           || 0) +
       (catMap['Lainnya']           || 0);
 
-    // Tabungan aktual = sisa cashflow + yang sudah dicatat sebagai tabungan target
     const tabungan_aktual = (saving > 0 ? saving : 0) + tabungan_dicatat;
 
     const budget_5030_20 = {

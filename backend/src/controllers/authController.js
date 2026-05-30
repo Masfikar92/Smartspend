@@ -7,7 +7,6 @@ const register = async (req, res) => {
   const { full_name, email, password } = req.body;
 
   try {
-    // Cek email sudah ada belum
     const [existing] = await db.query(
       'SELECT * FROM users WHERE email = ?', [email]
     );
@@ -15,10 +14,8 @@ const register = async (req, res) => {
       return res.status(400).json({ message: 'Email sudah terdaftar' });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Simpan ke database
     await db.query(
       'INSERT INTO users (full_name, email, password) VALUES (?, ?, ?)',
       [full_name, email, hashedPassword]
@@ -36,7 +33,6 @@ const login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // Cek email ada tidak
     const [users] = await db.query(
       'SELECT * FROM users WHERE email = ?', [email]
     );
@@ -46,13 +42,11 @@ const login = async (req, res) => {
 
     const user = users[0];
 
-    // Cek password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Email atau password salah' });
     }
 
-    // Buat JWT token
     const token = jwt.sign(
       { id: user.id, email: user.email },
       process.env.JWT_SECRET,

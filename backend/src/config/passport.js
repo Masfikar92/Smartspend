@@ -13,13 +13,12 @@ passport.use(new GoogleStrategy({
     const google_id = profile.id;
     const avatar = profile.photos[0]?.value;
 
-    // Cek apakah user sudah ada
+    
     const [existing] = await db.query(
       'SELECT * FROM users WHERE email = ?', [email]
     );
 
     if (existing.length > 0) {
-      // User sudah ada, update google_id kalau belum ada
       if (!existing[0].google_id) {
         await db.query(
           'UPDATE users SET google_id = ?, avatar = ? WHERE email = ?',
@@ -29,7 +28,6 @@ passport.use(new GoogleStrategy({
       return done(null, existing[0]);
     }
 
-    // User baru, simpan ke database
     const [result] = await db.query(
       'INSERT INTO users (full_name, email, google_id, avatar) VALUES (?, ?, ?, ?)',
       [full_name, email, google_id, avatar]

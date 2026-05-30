@@ -38,14 +38,12 @@ const saveProfile = async (req, res) => {
   } = req.body;
 
   try {
-    // Cek apakah profil sudah ada
     const [existing] = await db.query(
       'SELECT id FROM user_profiles WHERE user_id = ? LIMIT 1',
       [user_id]
     );
 
     if (existing.length > 0) {
-      // Update
       await db.query(`
         UPDATE user_profiles SET
           provinsi               = ?,
@@ -66,7 +64,6 @@ const saveProfile = async (req, res) => {
         user_id
       ]);
     } else {
-      // Insert baru
       await db.query(`
         INSERT INTO user_profiles (
           user_id, provinsi, klasifikasi_wilayah, jenis_kelamin, usia,

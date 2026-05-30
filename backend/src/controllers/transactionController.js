@@ -38,13 +38,11 @@ const getTransactions = async (req, res) => {
   }
 };
 
-// Ambil summary (total pemasukan, pengeluaran, sisa)
 const getSummary = async (req, res) => {
   const user_id = req.user.id;
   const { month, year } = req.query;
 
   try {
-    // Saldo kumulatif sampai bulan yang dipilih
     const [cumulative] = await db.query(`
       SELECT 
         SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as total_income,
@@ -57,7 +55,6 @@ const getSummary = async (req, res) => {
       )
     `, [user_id, year, year, month]);
 
-    // Pemasukan & pengeluaran bulan yang dipilih saja
     const [monthly] = await db.query(`
       SELECT 
         SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as monthly_income,
@@ -85,7 +82,6 @@ const getSummary = async (req, res) => {
   }
 };
 
-// Ambil data grafik 6 bulan terakhir
 const getChartData = async (req, res) => {
   const user_id = req.user.id;
 
@@ -108,7 +104,6 @@ const getChartData = async (req, res) => {
   }
 };
 
-// Hapus transaksi
 const deleteTransaction = async (req, res) => {
   const { id } = req.params;
   const user_id = req.user.id;
