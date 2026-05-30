@@ -1,7 +1,7 @@
 const db = require('../models/db');
 const axios = require('axios');
 
-const ML_SERVICE = 'http://localhost:8000';
+const ML_SERVICE = process.env.ML_SERVICE_URL || 'http://localhost:8000';
 
 const getRecommendation = async (req, res) => {
   const user_id = req.user.id;
