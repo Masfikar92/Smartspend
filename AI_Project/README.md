@@ -49,7 +49,7 @@ REST API berbasis FastAPI untuk prediksi kondisi finansial dan estimasi tabungan
 ## Swagger UI
 
 ```
-https://<your-space-url>/docs
+https://reizu-smartspend-model.hf.space/docs
 ```
 
 ---
