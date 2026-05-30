@@ -24,6 +24,12 @@ export default function TargetTabunganPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const deadlineDate = new Date(form.deadline);
+    if (!form.deadline || deadlineDate <= today) {
+      return setMsg('Deadline harus di masa depan');
+    }
     setLoading(true);
     try {
       await api.post('/savings', form);
@@ -50,7 +56,7 @@ export default function TargetTabunganPage() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Hapus target ini?')) return;
+    if (!confirm('Hapus target ini? Riwayat tabungan yang sudah tercatat tidak akan ikut terhapus.')) return;
     try {
       await api.delete(`/savings/${id}`);
       fetchGoals();
@@ -71,27 +77,33 @@ export default function TargetTabunganPage() {
   };
 
   const getSavingRecommendation = (target, current, deadline) => {
-    const diff = new Date(deadline) - new Date();
-    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-    
-    if (days <= 0) return { amount: 0, per: 'bulan' };
-    
+    const now = new Date();
+    const deadlineDate = new Date(deadline);
     const remaining = Number(target) - Number(current);
-    
-    if (days <= 30) {
+
+    if (remaining <= 0) return { amount: 0, per: 'bulan' };
+
+    const diffDays = Math.ceil((deadlineDate - now) / (1000 * 60 * 60 * 24));
+    if (diffDays <= 0) return { amount: 0, per: 'bulan' };
+
+    if (diffDays <= 30) {
       // Hitung per minggu
-      const weeks = Math.ceil(days / 7);
-      return { 
-        amount: Math.ceil(remaining / weeks), 
-        per: 'minggu' 
-      };
+      const weeks = Math.max(1, Math.round(diffDays / 7));
+      return { amount: Math.ceil(remaining / weeks), per: 'minggu' };
     } else {
-      // Hitung per bulan
-      const months = Math.ceil(days / 30);
-      return { 
-        amount: Math.ceil(remaining / months), 
-        per: 'bulan' 
-      };
+      // Hitung bulan kalender yang tersisa secara akurat
+      let months = 0;
+      const cursor = new Date(now.getFullYear(), now.getMonth(), 1);
+      const deadlineMonth = new Date(deadlineDate.getFullYear(), deadlineDate.getMonth(), 1);
+
+      while (cursor < deadlineMonth) {
+        months++;
+        cursor.setMonth(cursor.getMonth() + 1);
+      }
+
+      // Kalau deadline di bulan yang sama atau sudah lewat, minimal 1
+      months = Math.max(1, months);
+      return { amount: Math.ceil(remaining / months), per: 'bulan' };
     }
   };
 

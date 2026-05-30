@@ -9,6 +9,8 @@ const authGoogleRoutes = require('./src/routes/authGoogle');
 const transactionRoutes = require('./src/routes/transactions');
 const savingRoutes = require('./src/routes/savings');
 const userRoutes = require('./src/routes/user');
+const recommendationRoutes = require('./src/routes/recommendation');
+const profileRoutes = require('./src/routes/profile');
 
 const app = express();
 
@@ -30,6 +32,8 @@ app.use('/api/auth', authGoogleRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/savings', savingRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/recommendation', recommendationRoutes);
+app.use('/api/profile', profileRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'SmartSpend API berjalan!' });

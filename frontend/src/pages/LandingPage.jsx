@@ -109,11 +109,11 @@ export default function LandingPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '600px', margin: '0 auto' }}>
           {[
             {
-              title: 'Chatbot AI Keuangan',
-              desc: 'Tidak semua pertanyaan soal keuangan perlu dijawab oleh financial advisor. Chatbot SmartSpend hadir untuk menjawab pertanyaan finansial sehari-hari secara personal, berdasarkan riwayat transaksi dan kondisi keuanganmu yang sesungguhnya, bukan jawaban umum yang berlaku untuk semua orang.'
+              title: 'Rekomendasi Budgeting',
+              desc: 'Kendalikan keuangan Anda dengan bantuan sistem rekomendasi budgeting. SmartSpend menganalisis pola pengeluaran Anda secara real-time dan memberikan rekomendasi budgeting yang dipersonalisasi sehingga setiap rupiah digunakan secara optimal.'
             },
             {
-              title: 'Target Tabungan Cerdas',
+              title: 'Target Tabungan',
               desc: 'Menabung akan jauh lebih konsisten ketika ada target yang jelas dan terukur. Tetapkan tujuan finansialmu, dan SmartSpend akan membantu menghitung nominal tabungan yang realistis sesuai kondisimu, lengkap dengan pemantauan progres setiap minggunya.'
             }
           ].map((f, i) => (

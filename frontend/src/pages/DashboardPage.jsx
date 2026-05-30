@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip, Legend, ResponsiveContainer
+  Tooltip, ResponsiveContainer
 } from 'recharts';
 import { MdArrowBackIos, MdArrowForwardIos } from 'react-icons/md';
 
@@ -18,12 +18,9 @@ const INCOME_CATEGORIES = [
   'Gaji','Freelance','Kiriman / Uang Saku',
   'Investasi','Bisnis','Lainnya'
 ];
-
 const MONTH_NAMES = ['Januari','Februari','Maret','April','Mei','Juni',
   'Juli','Agustus','September','Oktober','November','Desember'];
-
-const formatRp = (val) =>
-  'Rp ' + Number(val).toLocaleString('id-ID');
+const formatRp = (val) => 'Rp ' + Number(val).toLocaleString('id-ID');
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -32,17 +29,13 @@ export default function DashboardPage() {
   const [currentYear, setCurrentYear] = useState(now.getFullYear());
   const [summary, setSummary] = useState({ total_income: 0, total_expense: 0, balance: 0 });
   const [chartData, setChartData] = useState([]);
-  const [form, setForm] = useState({
-  description: '', amount: '', type: 'expense', category: ''
-});
+  const [form, setForm] = useState({ description: '', amount: '', type: 'expense', category: '' });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
 
   const fetchSummary = async () => {
     try {
-      const res = await api.get('/transactions/summary', {
-        params: { month: currentMonth + 1, year: currentYear }
-      });
+      const res = await api.get('/transactions/summary', { params: { month: currentMonth + 1, year: currentYear } });
       setSummary(res.data);
     } catch (e) { console.error(e); }
   };
@@ -50,12 +43,11 @@ export default function DashboardPage() {
   const fetchChart = async () => {
     try {
       const res = await api.get('/transactions/chart');
-      const formatted = res.data.map(row => ({
+      setChartData(res.data.map(row => ({
         name: MONTH_NAMES[row.month - 1].slice(0, 3),
         Pemasukan: Number(row.income),
         Pengeluaran: Number(row.expense),
-      }));
-      setChartData(formatted);
+      })));
     } catch (e) { console.error(e); }
   };
 
@@ -71,179 +63,113 @@ export default function DashboardPage() {
     else setCurrentMonth(m => m + 1);
   };
 
-  const categories = form.type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.category) return setMsg('Pilih kategori dulu');
+    if (Number(form.amount) <= 0) return setMsg('Nominal harus lebih dari 0');
     setSaving(true);
     try {
-      await api.post('/transactions', {
-        ...form,
-        date: new Date().toISOString().split('T')[0]
-      });
+      await api.post('/transactions', { ...form, date: new Date().toISOString().split('T')[0] });
       setMsg('Transaksi berhasil disimpan!');
-      setForm({ description: '', amount: '', type: 'expense', category: '', date: now.toISOString().split('T')[0] });
-      fetchSummary();
-      fetchChart();
-    } catch (e) {
-      setMsg('Gagal menyimpan transaksi');
-    } finally {
-      setSaving(false);
-      setTimeout(() => setMsg(''), 3000);
-    }
+      setForm({ description: '', amount: '', type: 'expense', category: '' });
+      fetchSummary(); fetchChart();
+    } catch (e) { setMsg('Gagal menyimpan transaksi'); }
+    finally { setSaving(false); setTimeout(() => setMsg(''), 3000); }
   };
 
   const maxVal = Math.max(...chartData.map(d => Math.max(d.Pemasukan, d.Pengeluaran)), 0);
   const yMax = Math.ceil((maxVal + 2000000) / 1000000) * 1000000;
+  const categories = form.type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
 
   return (
     <MainLayout>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <div>
-          <h1 style={{ fontSize: '22px', fontWeight: '600', color: '#101828', margin: 0 }}>Dashboard Finansialmu</h1>
-          <p style={{ fontSize: '14px', color: '#667085', margin: 0 }}>Hi, {user?.full_name?.split(' ')[0]} </p>
-        </div>
+      <style>{`
+        .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+        .chart-legend { display: flex; gap: 16px; font-size: 12px; color: #667085; }
+        @media (max-width: 768px) {
+          .dash-grid { grid-template-columns: 1fr; }
+          .chart-legend { display: none; }
+        }
+      `}</style>
+
+      <div style={{ marginBottom: '24px' }}>
+        <h1 style={{ fontSize: '22px', fontWeight: '600', color: '#101828', margin: 0 }}>Dashboard Finansialmu</h1>
+        <p style={{ fontSize: '14px', color: '#667085', margin: 0 }}>Hi, {user?.full_name?.split(' ')[0]}</p>
       </div>
 
-      {/* Summary + Form */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
-
-      {/* Summary Card */}
-      <div style={{
-        background: 'linear-gradient(180deg, #54B5FF 0%, #3798E3 100%)',
-        borderRadius: '16px', padding: '28px 24px', color: 'white'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', marginBottom: '16px' }}>
-          <button onClick={prevMonth} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: '4px' }}>
-            <MdArrowBackIos size={20}/>
-          </button>
-          <span style={{ fontSize: '26px', fontWeight: '700', letterSpacing: '0.01em' }}>
-            {MONTH_NAMES[currentMonth]} {currentYear}
-          </span>
-          <button onClick={nextMonth} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: '4px' }}>
-            <MdArrowForwardIos size={20}/>
-          </button>
-        </div>
-
-        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-          <p style={{ fontSize: '16px', opacity: 0.85, margin: '0 0 6px' }}>Sisa Uang</p>
-          <p style={{ fontSize: '32px', fontWeight: '700', margin: 0 }}>{formatRp(summary.balance)}</p>
-        </div>
-
-        <div style={{
-          display: 'grid', gridTemplateColumns: '1fr 1fr',
-          borderTop: '1.5px solid rgba(255,255,255,0.35)',
-          paddingTop: '16px', gap: '8px'
-        }}>
-          <div style={{ textAlign: 'center' }}>
-            <p style={{ fontSize: '16px', opacity: 0.85, margin: '0 0 4px' }}>Pemasukan</p>
-            <p style={{ fontSize: '20px', fontWeight: '700', margin: 0 }}>{formatRp(summary.total_income)}</p>
+      <div className="dash-grid">
+        {/* Summary Card */}
+        <div style={{ background: 'linear-gradient(180deg, #54B5FF 0%, #3798E3 100%)', borderRadius: '16px', padding: '28px 24px', color: 'white' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', marginBottom: '16px' }}>
+            <button onClick={prevMonth} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: '4px' }}>
+              <MdArrowBackIos size={20}/>
+            </button>
+            <span style={{ fontSize: '22px', fontWeight: '700' }}>{MONTH_NAMES[currentMonth]} {currentYear}</span>
+            {(() => {
+              const isCurrentMonth = currentMonth === now.getMonth() && currentYear === now.getFullYear();
+              return (
+                <button onClick={nextMonth} disabled={isCurrentMonth} style={{
+                  background: 'none', border: 'none', padding: '4px',
+                  cursor: isCurrentMonth ? 'not-allowed' : 'pointer',
+                  color: isCurrentMonth ? 'rgba(255,255,255,0.3)' : 'white',
+                }}>
+                  <MdArrowForwardIos size={20}/>
+                </button>
+              );
+            })()}
           </div>
-          <div style={{ textAlign: 'center', borderLeft: '1.5px solid rgba(255,255,255,0.35)' }}>
-            <p style={{ fontSize: '16px', opacity: 0.85, margin: '0 0 4px' }}>Pengeluaran</p>
-            <p style={{ fontSize: '20px', fontWeight: '700', margin: 0 }}>{formatRp(summary.total_expense)}</p>
+          <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+            <p style={{ fontSize: '14px', opacity: 0.85, margin: '0 0 6px' }}>Saldo</p>
+            <p style={{ fontSize: '28px', fontWeight: '700', margin: 0 }}>{formatRp(summary.balance)}</p>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderTop: '1.5px solid rgba(255,255,255,0.35)', paddingTop: '16px', gap: '8px' }}>
+            <div style={{ textAlign: 'center' }}>
+              <p style={{ fontSize: '13px', opacity: 0.85, margin: '0 0 4px' }}>Pemasukan</p>
+              <p style={{ fontSize: '16px', fontWeight: '700', margin: 0 }}>{formatRp(summary.total_income)}</p>
+            </div>
+            <div style={{ textAlign: 'center', borderLeft: '1.5px solid rgba(255,255,255,0.35)' }}>
+              <p style={{ fontSize: '13px', opacity: 0.85, margin: '0 0 4px' }}>Pengeluaran</p>
+              <p style={{ fontSize: '16px', fontWeight: '700', margin: 0 }}>{formatRp(summary.total_expense)}</p>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Form Catatan */}
-      <div style={{
-        background: 'linear-gradient(180deg, #54B5FF 0%, #3798E3 100%)',
-        borderRadius: '16px', padding: '24px'
-      }}>
-        <h3 style={{ color: 'white', fontWeight: '700', fontSize: '18px', margin: '0 0 16px' }}>
-          Catatan Keuangan
-        </h3>
-
-        {msg && (
-          <div style={{
-            background: 'rgba(255,255,255,0.25)', color: 'white',
-            padding: '8px 12px', borderRadius: '8px',
-            fontSize: '13px', marginBottom: '10px'
-          }}>
-            {msg}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <input
-            placeholder="Keterangan"
-            value={form.description}
-            onChange={e => setForm({...form, description: e.target.value})}
-            required
-            style={{
-              padding: '12px 16px', borderRadius: '10px',
-              border: 'none', fontSize: '14px', outline: 'none',
-              width: '100%', boxSizing: 'border-box',
-              background: 'white'
-            }}
-          />
-
-      {/* Nominal + Toggle Type */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-        <input
-          type="number"
-          placeholder="Nominal"
-          value={form.amount}
-          onChange={e => setForm({...form, amount: e.target.value})}
-          required
-          style={{
-            padding: '12px 16px', borderRadius: '10px',
-            border: 'none', fontSize: '14px', outline: 'none',
-            background: 'white', width: '100%', boxSizing: 'border-box'
-          }}
-        />
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-          <button type="button"
-            onClick={() => setForm({...form, type: 'income', category: ''})}
-            style={{
-              padding: '12px 6px', borderRadius: '10px', fontSize: '13px',
-              fontWeight: '600', cursor: 'pointer', border: 'none',
-              background: form.type === 'income' ? 'white' : 'rgba(255,255,255,0.25)',
-              color: form.type === 'income' ? '#336D99' : 'white',
-              transition: 'all .15s'
-            }}>
-            Pemasukan
-          </button>
-          <button type="button"
-            onClick={() => setForm({...form, type: 'expense', category: ''})}
-            style={{
-              padding: '12px 6px', borderRadius: '10px', fontSize: '13px',
-              fontWeight: '600', cursor: 'pointer', border: 'none',
-              background: form.type === 'expense' ? 'white' : 'rgba(255,255,255,0.25)',
-              color: form.type === 'expense' ? '#336D99' : 'white',
-              transition: 'all .15s'
-            }}>
-            Pengeluaran
-          </button>
+        {/* Form Catatan */}
+        <div style={{ background: 'linear-gradient(180deg, #54B5FF 0%, #3798E3 100%)', borderRadius: '16px', padding: '24px' }}>
+          <h3 style={{ color: 'white', fontWeight: '700', fontSize: '18px', margin: '0 0 16px' }}>Catatan Keuangan</h3>
+          {msg && (
+            <div style={{ background: 'rgba(255,255,255,0.25)', color: 'white', padding: '8px 12px', borderRadius: '8px', fontSize: '13px', marginBottom: '10px' }}>
+              {msg}
+            </div>
+          )}
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <input placeholder="Keterangan" value={form.description} onChange={e => setForm({...form, description: e.target.value})} required
+              style={{ padding: '12px 16px', borderRadius: '10px', border: 'none', fontSize: '14px', outline: 'none', width: '100%', boxSizing: 'border-box', background: 'white' }} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <input type="number" placeholder="Nominal" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} required
+                style={{ padding: '12px 16px', borderRadius: '10px', border: 'none', fontSize: '14px', outline: 'none', background: 'white', width: '100%', boxSizing: 'border-box' }} />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                {['income','expense'].map(t => (
+                  <button key={t} type="button" onClick={() => setForm({...form, type: t, category: ''})}
+                    style={{ padding: '12px 6px', borderRadius: '10px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', border: 'none',
+                      background: form.type === t ? 'white' : 'rgba(255,255,255,0.25)',
+                      color: form.type === t ? '#336D99' : 'white' }}>
+                    {t === 'income' ? 'Masuk' : 'Keluar'}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <select value={form.category} onChange={e => setForm({...form, category: e.target.value})}
+              style={{ padding: '12px 16px', borderRadius: '10px', border: 'none', fontSize: '14px', outline: 'none', width: '100%', boxSizing: 'border-box', background: 'rgba(255,255,255,0.5)' }}>
+              <option value="">-- Pilih Kategori --</option>
+              {categories.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <button type="submit" disabled={saving}
+              style={{ padding: '13px', borderRadius: '10px', border: 'none', background: 'white', color: '#336D99', fontWeight: '700', fontSize: '15px', cursor: 'pointer' }}>
+              {saving ? 'Menyimpan...' : 'Simpan'}
+            </button>
+          </form>
         </div>
-      </div>
-
-      <select
-        value={form.category}
-        onChange={e => setForm({...form, category: e.target.value})}
-        style={{
-          padding: '12px 16px', borderRadius: '10px',
-          border: 'none', fontSize: '14px', outline: 'none',
-          width: '100%', boxSizing: 'border-box',
-          color: form.category ? '#101828' : '#000000',
-          background: 'rgba(255, 255, 255, 0.5)'
-        }}>
-        <option value="">-- Pilih Kategori --</option>
-        {categories.map(c => <option key={c} value={c}>{c}</option>)}
-      </select>
-
-      <button type="submit" disabled={saving} style={{
-        padding: '13px', borderRadius: '10px', border: 'none',
-        background: 'white', color: '#336D99', fontWeight: '700',
-        fontSize: '15px', cursor: 'pointer', transition: 'all .15s'
-      }}>
-        {saving ? 'Menyimpan...' : 'Simpan'}
-      </button>
-        </form>
-      </div>
       </div>
 
       {/* Grafik */}
@@ -253,35 +179,28 @@ export default function DashboardPage() {
             <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#101828', margin: 0 }}>Grafik Keuangan</h3>
             <p style={{ fontSize: '13px', color: '#667085', margin: 0 }}>6 bulan terakhir</p>
           </div>
-          <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: '#667085' }}>
+          <div className="chart-legend">
             <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ width: '20px', height: '3px', background: '#1976d2', display: 'inline-block', borderRadius: '2px' }}></span>
-              Pemasukan
+              <span style={{ width: '20px', height: '3px', background: '#1976d2', display: 'inline-block', borderRadius: '2px' }}></span>Pemasukan
             </span>
             <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ width: '20px', height: '3px', background: '#D85A30', display: 'inline-block', borderRadius: '2px' }}></span>
-              Pengeluaran
+              <span style={{ width: '20px', height: '3px', background: '#D85A30', display: 'inline-block', borderRadius: '2px' }}></span>Pengeluaran
             </span>
           </div>
         </div>
-
         {chartData.length === 0 ? (
-          <div style={{ height: '250px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#667085', fontSize: '14px' }}>
-            Belum ada data transaksi. Mulai catat keuanganmu!
+          <div style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#667085', fontSize: '14px' }}>
+            Belum ada data transaksi.
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height={250}>
+          <ResponsiveContainer width="100%" height={220}>
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#888' }} />
-              <YAxis
-                tick={{ fontSize: 11, fill: '#888' }}
-                domain={[0, yMax]}
-                tickFormatter={(v) => `Rp ${(v/1000000).toFixed(1)}jt`}
-              />
+              <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#888' }} />
+              <YAxis tick={{ fontSize: 10, fill: '#888' }} domain={[0, yMax]} tickFormatter={(v) => `${(v/1000000).toFixed(1)}jt`} width={45} />
               <Tooltip formatter={(val) => `Rp ${Number(val).toLocaleString('id-ID')}`} />
-              <Line type="monotone" dataKey="Pemasukan" stroke="#1976d2" strokeWidth={2.5} dot={{ r: 5 }} activeDot={{ r: 7 }} />
-              <Line type="monotone" dataKey="Pengeluaran" stroke="#D85A30" strokeWidth={2.5} strokeDasharray="6 3" dot={{ r: 5 }} activeDot={{ r: 7 }} />
+              <Line type="monotone" dataKey="Pemasukan" stroke="#1976d2" strokeWidth={2.5} dot={{ r: 4 }} />
+              <Line type="monotone" dataKey="Pengeluaran" stroke="#D85A30" strokeWidth={2.5} strokeDasharray="6 3" dot={{ r: 4 }} />
             </LineChart>
           </ResponsiveContainer>
         )}

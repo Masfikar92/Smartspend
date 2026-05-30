@@ -8,22 +8,28 @@ import GoogleCallbackPage from './pages/GoogleCallbackPage';
 import LandingPage from './pages/LandingPage';
 import TargetTabunganPage from './pages/TargetTabunganPage';
 import PengaturanPage from './pages/PengaturanPage';
+import RekomendasiPage from './pages/RekomendasiPage';
 
 function App() {
   const { user, loading } = useAuth();
-  if (loading) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>;
+  if (loading) return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      Loading...
+    </div>
+  );
 
   return (
     <Routes>
+      <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/dashboard" />} />
       <Route path="/register" element={!user ? <RegisterPage /> : <Navigate to="/dashboard" />} />
-      <Route path="/dashboard" element={user ? <DashboardPage /> : <Navigate to="/login" />} />
-      <Route path="*" element={<Navigate to={user ? "/dashboard" : "/login"} />} />
-      <Route path="/riwayat" element={user ? <RiwayatPage /> : <Navigate to="/login" />} />
       <Route path="/auth/google/callback" element={<GoogleCallbackPage />} />
-      <Route path="/" element={<LandingPage />} />
+      <Route path="/dashboard" element={user ? <DashboardPage /> : <Navigate to="/login" />} />
+      <Route path="/riwayat" element={user ? <RiwayatPage /> : <Navigate to="/login" />} />
       <Route path="/target" element={user ? <TargetTabunganPage /> : <Navigate to="/login" />} />
       <Route path="/pengaturan" element={user ? <PengaturanPage /> : <Navigate to="/login" />} />
+      <Route path="/rekomendasi" element={user ? <RekomendasiPage /> : <Navigate to="/login" />} />
+      <Route path="*" element={<Navigate to={user ? "/dashboard" : "/login"} />} />
     </Routes>
   );
 }

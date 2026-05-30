@@ -30,7 +30,7 @@ const getTransactions = async (req, res) => {
       params.push(month, year);
     }
 
-    query += ' ORDER BY date DESC';
+    query += ' ORDER BY date DESC, id DESC';
     const [transactions] = await db.query(query, params);
     res.json(transactions);
   } catch (error) {
@@ -44,29 +44,42 @@ const getSummary = async (req, res) => {
   const { month, year } = req.query;
 
   try {
-    let query = `
+    // Saldo kumulatif sampai bulan yang dipilih
+    const [cumulative] = await db.query(`
       SELECT 
         SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as total_income,
         SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as total_expense
       FROM transactions 
       WHERE user_id = ?
-    `;
-    let params = [user_id];
+      AND (
+        YEAR(date) < ? 
+        OR (YEAR(date) = ? AND MONTH(date) <= ?)
+      )
+    `, [user_id, year, year, month]);
 
-    if (month && year) {
-      query += ' AND MONTH(date) = ? AND YEAR(date) = ?';
-      params.push(month, year);
-    }
+    // Pemasukan & pengeluaran bulan yang dipilih saja
+    const [monthly] = await db.query(`
+      SELECT 
+        SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as monthly_income,
+        SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as monthly_expense
+      FROM transactions 
+      WHERE user_id = ?
+      AND MONTH(date) = ? AND YEAR(date) = ?
+    `, [user_id, month, year]);
 
-    const [rows] = await db.query(query, params);
-    const income = rows[0].total_income || 0;
-    const expense = rows[0].total_expense || 0;
+    const total_income = Number(cumulative[0].total_income) || 0;
+    const total_expense = Number(cumulative[0].total_expense) || 0;
+    const balance = total_income - total_expense;
+
+    const monthly_income = Number(monthly[0].monthly_income) || 0;
+    const monthly_expense = Number(monthly[0].monthly_expense) || 0;
 
     res.json({
-      total_income: income,
-      total_expense: expense,
-      balance: income - expense
+      total_income: monthly_income,
+      total_expense: monthly_expense,
+      balance: balance
     });
+
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
