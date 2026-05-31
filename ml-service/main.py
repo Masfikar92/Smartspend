@@ -3,11 +3,18 @@ import numpy as np
 import pandas as pd
 import joblib
 import tensorflow as tf
+import logging
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
 from services.gemini_service import generate_ai_analysis  # SmartSpend AI (GenAI)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s — %(message)s"
+)
+logger = logging.getLogger("smartspend.main")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 AI_DIR   = os.path.join(BASE_DIR, "models", "ai")
@@ -210,7 +217,7 @@ def predict_cluster(data: DSInput):
 async def analyze_smartspend_ai(data: SmartSpendAIInput):
     """
     Endpoint baru: terima combined data (kondisi + cluster + summary + profile)
-    → kirim ke Gemini 1.5 Flash → kembalikan analisis personal dalam Bahasa Indonesia.
+    → kirim ke Gemini 3.5 Flash → kembalikan analisis personal dalam Bahasa Indonesia.
     
     Dipanggil oleh backend Node.js sebagai parallel call ke-3 di Promise.all.
     Response: { "saran_ai": "...teks analisis personal..." }
