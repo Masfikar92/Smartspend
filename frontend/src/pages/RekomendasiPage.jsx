@@ -579,9 +579,9 @@ export default function RekomendasiPage() {
                 <div style={{ padding: '18px 24px', borderBottom: '0.5px solid #e4e7ec', display: 'flex', alignItems: 'center', gap: '10px', background: 'linear-gradient(135deg, #fff8f0, #fef6e7)' }}>
                   <div style={{
                     width: '36px', height: '36px', borderRadius: '10px',
-                    background: 'linear-gradient(135deg, #f79009, #b54708)',
+                    background: 'linear-gradient(135deg, #54B5FF, #336D99)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px'
-                  }}>✨</div>
+                  }}></div>
                   <div>
                     <p style={{ fontSize: '15px', fontWeight: '600', color: '#101828', margin: 0 }}>SmartSpend AI</p>
                     <p style={{ fontSize: '12px', color: '#667085', margin: 0 }}>Powered by Generative AI · Saran personal berbasis data keuanganmu</p>
