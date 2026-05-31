@@ -167,7 +167,7 @@ def generate_rekomendasi(row: dict) -> list:
 
 @app.get("/health")
 def health():
-     """Mengecek status layanan dan ketersediaan model."""
+    """Mengecek status layanan dan ketersediaan model."""
     return {
         "status"           : "ok",
         "models"           : ["ai", "ds", "genai"],
