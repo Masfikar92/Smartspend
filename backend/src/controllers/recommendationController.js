@@ -121,11 +121,45 @@ const getRecommendation = async (req, res) => {
       axios.post(`${ML_SERVICE}/predict/cluster`, dsPayload),
     ]);
 
+    // New: Panggil SmartSpend AI (GenAI)
+    let saran_ai = null;
+    try {
+      const aiAnalysisPayload = {
+        user_id        : String(user_id),
+        kondisi        : aiResponse.data,
+        cluster        : dsResponse.data,
+        summary        : { income, expense, saving, rasio: parseFloat(rasio.toFixed(1)) },
+        profile        : {
+          usia              : profile.usia               || 25,
+          status_pekerjaan  : profile.status_pekerjaan   || 'Karyawan Swasta',
+          status_pernikahan : profile.status_pernikahan  || 'Belum Menikah',
+          pendidikan_terakhir: profile.pendidikan_terakhir || 'SMA',
+          jumlah_tanggungan : profile.jumlah_tanggungan  || 0,
+          skor_literasi_keuangan: profile.skor_literasi_keuangan || 50,
+          cicilan_hutang    : profile.cicilan_hutang     || 0,
+          provinsi          : profile.provinsi           || 'DKI Jakarta',
+        },
+        budget_5030_20 : budget_5030_20,
+        kategori       : catMap,
+      };
+
+      const aiAnalysisResponse = await axios.post(
+        `${ML_SERVICE}/analyze/smartspend-ai`,
+        aiAnalysisPayload,
+        { timeout: 35000 }
+      );
+      saran_ai = aiAnalysisResponse.data.saran_ai || null;
+    } catch (genaiError) {
+      console.error('[SmartSpend AI] GenAI call failed:', genaiError.message);
+      saran_ai = null;   // Frontend handle: tampilkan "Saran AI sedang disiapkan..."
+    }
+    
     res.json({
       summary        : { income, expense, saving, rasio: rasio.toFixed(1) },
       kondisi        : aiResponse.data,
       cluster        : dsResponse.data,
       budget_5030_20 : budget_5030_20,
+      saran_ai       : saran_ai,
     });
 
   } catch (error) {
