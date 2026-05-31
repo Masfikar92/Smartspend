@@ -7,6 +7,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
+from services.gemini_service import generate_ai_analysis  # SmartSpend AI (GenAI)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 AI_DIR   = os.path.join(BASE_DIR, "models", "ai")
@@ -64,6 +65,20 @@ class DSInput(BaseModel):
     pengeluaran_kesehatan        : Optional[float] = 0
     pengeluaran_hiburan_rekreasi : Optional[float] = 0
     pengeluaran_jajan_makan_luar : Optional[float] = 0
+
+# NEW: SmartSpend AI Input
+class SmartSpendAIInput(BaseModel):
+    """
+    Gabungan output ML models + data keuangan + profil user
+    untuk dikirim ke Gemini dan menghasilkan analisis personal.
+    """
+    user_id: Optional[str] = "anonymous"
+    kondisi: dict
+    cluster: dict
+    summary: dict
+    profile: dict
+    budget_5030_20: dict
+    kategori: Optional[dict] = {}
 
 def preprocess_ai(data: dict) -> np.ndarray:
     df = pd.DataFrame([data])
@@ -184,3 +199,44 @@ def predict_cluster(data: DSInput):
         return {"cluster_id": cluster_id, "nama_cluster": nama_cluster.get(cluster_id, f"Cluster {cluster_id}"), "rekomendasi": rekomendasi}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# NEW: SmartSpend AI Endpoint
+@app.post("/analyze/smartspend-ai")
+async def analyze_smartspend_ai(data: SmartSpendAIInput):
+    """
+    Endpoint baru: terima combined data (kondisi + cluster + summary + profile)
+    → kirim ke Gemini 1.5 Flash → kembalikan analisis personal dalam Bahasa Indonesia.
+    
+    Dipanggil oleh backend Node.js sebagai parallel call ke-3 di Promise.all.
+    Response: { "saran_ai": "...teks analisis personal..." }
+    """
+    try:
+        logger.info(
+            "SmartSpend AI request: user=%s, kondisi=%s, cluster=%s",
+            data.user_id,
+            data.kondisi.get("kondisi_keuangan", "?"),
+            data.cluster.get("nama_cluster", "?")
+        )
+
+        saran_ai = await generate_ai_analysis(
+            data={
+                "kondisi"       : data.kondisi,
+                "cluster"       : data.cluster,
+                "summary"       : data.summary,
+                "profile"       : data.profile,
+                "budget_5030_20": data.budget_5030_20,
+                "kategori"      : data.kategori or {},
+            },
+            user_id=data.user_id
+        )
+
+        return {"saran_ai": saran_ai}
+
+    except Exception as e:
+        logger.error("analyze_smartspend_ai error: %s", e)
+        return {
+            "saran_ai": (
+                "✨ Analisis SmartSpend AI tidak tersedia saat ini. "
+                "Gunakan rekomendasi di atas sebagai panduan keuanganmu."
+            )
+        }
