@@ -1,34 +1,55 @@
 import os
+import logging
 import numpy as np
 import pandas as pd
 import joblib
 import tensorflow as tf
-import logging
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
-from services.gemini_service import generate_ai_analysis  # SmartSpend AI (GenAI)
 
+# ── SmartSpend AI (GenAI) ─────────────────────────────────────────────────────
+from services.gemini_service import generate_ai_analysis
+
+# ── Logging setup ─────────────────────────────────────────────────────────────
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s — %(message)s"
 )
 logger = logging.getLogger("smartspend.main")
 
+# ── Model paths ───────────────────────────────────────────────────────────────
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 AI_DIR   = os.path.join(BASE_DIR, "models", "ai")
 DS_DIR   = os.path.join(BASE_DIR, "models", "ds")
 
+# ── Load models at startup ────────────────────────────────────────────────────
+logger.info("Loading AI models...")
 ai_model       = tf.keras.models.load_model(os.path.join(AI_DIR, "smartspend_best.keras"))
 feature_scaler = joblib.load(os.path.join(AI_DIR, "feature_scaler.pkl"))
 target_scaler  = joblib.load(os.path.join(AI_DIR, "target_scaler.pkl"))
 label_encoder  = joblib.load(os.path.join(AI_DIR, "label_encoder.pkl"))
 ds_kmeans      = joblib.load(os.path.join(DS_DIR, "kmeans_model.pkl"))
 ds_scaler      = joblib.load(os.path.join(DS_DIR, "scaler.pkl"))
+logger.info("All models loaded successfully.")
 
-app = FastAPI(title="SmartSpend ML Service")
-app.add_middleware(CORSMiddleware, allow_origins=["https://smartspend-production-c4da.up.railway.app"], allow_methods=["POST", "GET"], allow_headers=["*"])
+# ── FastAPI app ───────────────────────────────────────────────────────────────
+app = FastAPI(
+    title="SmartSpend ML Service",
+    description="Deep Learning + KMeans + Generative AI untuk analisis keuangan personal",
+    version="2.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://smartspend-production-c4da.up.railway.app"],
+    allow_methods=["POST", "GET"],
+    allow_headers=["*"]
+)
+
+
+# ── Pydantic Models ───────────────────────────────────────────────────────────
 
 class AIInput(BaseModel):
     provinsi              : Optional[str]   = "DKI Jakarta"
@@ -58,6 +79,7 @@ class AIInput(BaseModel):
     pengeluaran_hiburan_rekreasi : Optional[float] = 0
     cicilan_hutang_bulanan       : Optional[float] = 0
 
+
 class DSInput(BaseModel):
     pendapatan_bulanan           : float
     total_pengeluaran            : float
@@ -73,19 +95,35 @@ class DSInput(BaseModel):
     pengeluaran_hiburan_rekreasi : Optional[float] = 0
     pengeluaran_jajan_makan_luar : Optional[float] = 0
 
-# NEW: SmartSpend AI Input
+
+# ── NEW: SmartSpend AI Input ──────────────────────────────────────────────────
 class SmartSpendAIInput(BaseModel):
     """
     Gabungan output ML models + data keuangan + profil user
     untuk dikirim ke Gemini dan menghasilkan analisis personal.
     """
-    user_id: Optional[str] = "anonymous"
-    kondisi: dict
-    cluster: dict
-    summary: dict
-    profile: dict
+    user_id: Optional[str] = "anonymous"   # Untuk rate limiting
+
+    # Output dari DL model
+    kondisi: dict   # { kondisi_keuangan, confidence, probabilities, rekomendasi_tabungan, pesan }
+
+    # Output dari DS model
+    cluster: dict   # { cluster_id, nama_cluster, rekomendasi[] }
+
+    # Ringkasan keuangan bulan ini
+    summary: dict   # { income, expense, saving, rasio }
+
+    # Profil user (dari user_profiles)
+    profile: dict   # { usia, status_pekerjaan, ... }
+
+    # Analisis 50/30/20
     budget_5030_20: dict
+
+    # Optional: breakdown pengeluaran per kategori
     kategori: Optional[dict] = {}
+
+
+# ── ML Helper Functions ───────────────────────────────────────────────────────
 
 def preprocess_ai(data: dict) -> np.ndarray:
     df = pd.DataFrame([data])
@@ -104,11 +142,14 @@ def preprocess_ai(data: dict) -> np.ndarray:
     X = np.nan_to_num(X, nan=0.0)
     return feature_scaler.transform(X)
 
+
 def generate_rekomendasi(row: dict) -> list:
+    """Rule-based recommendation generator berdasarkan threshold keuangan."""
     rekomendasi = []
     pendapatan = row.get('pendapatan_bulanan', 0)
     if pendapatan == 0:
         return ["Data pendapatan tidak tersedia."]
+
     pengeluaran    = row.get('total_pengeluaran', 0)
     tabungan       = row.get('tabungan_bulanan', 0)
     rasio_tabungan = row.get('rasio_tabungan_persen', 0)
@@ -172,14 +213,17 @@ def generate_rekomendasi(row: dict) -> list:
 
     return rekomendasi
 
+
+# ── Existing Endpoints ────────────────────────────────────────────────────────
+
 @app.get("/health")
 def health():
-    """Mengecek status layanan dan ketersediaan model."""
     return {
-        "status"           : "ok",
-        "models"           : ["ai", "ds", "genai"],
-        "genai_configured" : bool(os.environ.get("GEMINI_API_KEY")),
+        "status": "ok",
+        "models": ["ai", "ds", "genai"],
+        "genai_configured": bool(os.environ.get("GEMINI_API_KEY"))
     }
+
 
 @app.post("/predict/kondisi")
 def predict_kondisi(data: AIInput):
@@ -196,28 +240,55 @@ def predict_kondisi(data: AIInput):
             "Cukup Baik"      : "Keuangan Anda cukup baik. Tingkatkan tabungan untuk keamanan lebih.",
             "Perlu Perbaikan" : "Keuangan perlu perhatian. Kurangi pengeluaran tidak perlu.",
         }
-        return {"kondisi_keuangan": class_name, "confidence": round(confidence, 4), "probabilities": all_probs, "rekomendasi_tabungan": tabungan_ideal, "pesan": pesan_map.get(class_name, "")}
+        return {
+            "kondisi_keuangan"    : class_name,
+            "confidence"          : round(confidence, 4),
+            "probabilities"       : all_probs,
+            "rekomendasi_tabungan": tabungan_ideal,
+            "pesan"               : pesan_map.get(class_name, "")
+        }
     except Exception as e:
+        logger.error("predict_kondisi error: %s", e)
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.post("/predict/cluster")
 def predict_cluster(data: DSInput):
     try:
-        features = np.array([[data.pendapatan_bulanan, data.total_pengeluaran, data.tabungan_bulanan, data.rasio_tabungan_persen, data.skor_literasi_keuangan, data.cicilan_hutang, data.pengeluaran_perumahan_listrik, data.pengeluaran_makanan_pokok, data.pengeluaran_transportasi, data.pengeluaran_pendidikan, data.pengeluaran_kesehatan, data.pengeluaran_hiburan_rekreasi, data.pengeluaran_jajan_makan_luar]])
+        features = np.array([[
+            data.pendapatan_bulanan, data.total_pengeluaran,
+            data.tabungan_bulanan, data.rasio_tabungan_persen,
+            data.skor_literasi_keuangan, data.cicilan_hutang,
+            data.pengeluaran_perumahan_listrik, data.pengeluaran_makanan_pokok,
+            data.pengeluaran_transportasi, data.pengeluaran_pendidikan,
+            data.pengeluaran_kesehatan, data.pengeluaran_hiburan_rekreasi,
+            data.pengeluaran_jajan_makan_luar
+        ]])
         scaled     = ds_scaler.transform(features)
         cluster_id = int(ds_kmeans.predict(scaled)[0])
-        nama_cluster = {0: "Pengelola Menengah", 1: "Pengelola Hemat", 2: "Pengelola Mapan"}
+        nama_cluster = {
+            0: "Pengelola Menengah",
+            1: "Pengelola Hemat",
+            2: "Pengelola Mapan"
+        }
         rekomendasi = generate_rekomendasi(data.model_dump())
-        return {"cluster_id": cluster_id, "nama_cluster": nama_cluster.get(cluster_id, f"Cluster {cluster_id}"), "rekomendasi": rekomendasi}
+        return {
+            "cluster_id"  : cluster_id,
+            "nama_cluster": nama_cluster.get(cluster_id, f"Cluster {cluster_id}"),
+            "rekomendasi" : rekomendasi
+        }
     except Exception as e:
+        logger.error("predict_cluster error: %s", e)
         raise HTTPException(status_code=500, detail=str(e))
 
-# NEW: SmartSpend AI Endpoint
+
+# ── NEW: SmartSpend AI Endpoint ───────────────────────────────────────────────
+
 @app.post("/analyze/smartspend-ai")
 async def analyze_smartspend_ai(data: SmartSpendAIInput):
     """
     Endpoint baru: terima combined data (kondisi + cluster + summary + profile)
-    → kirim ke Gemini 3.5 Flash → kembalikan analisis personal dalam Bahasa Indonesia.
+    → kirim ke Gemini 1.5 Flash → kembalikan analisis personal dalam Bahasa Indonesia.
     
     Dipanggil oleh backend Node.js sebagai parallel call ke-3 di Promise.all.
     Response: { "saran_ai": "...teks analisis personal..." }
@@ -246,6 +317,7 @@ async def analyze_smartspend_ai(data: SmartSpendAIInput):
 
     except Exception as e:
         logger.error("analyze_smartspend_ai error: %s", e)
+        # Jangan raise 500 — kembalikan fallback agar frontend tidak error
         return {
             "saran_ai": (
                 "✨ Analisis SmartSpend AI tidak tersedia saat ini. "
