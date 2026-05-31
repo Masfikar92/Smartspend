@@ -167,7 +167,12 @@ def generate_rekomendasi(row: dict) -> list:
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "models": ["ai", "ds"]}
+     """Mengecek status layanan dan ketersediaan model."""
+    return {
+        "status"           : "ok",
+        "models"           : ["ai", "ds", "genai"],
+        "genai_configured" : bool(os.environ.get("GEMINI_API_KEY")),
+    }
 
 @app.post("/predict/kondisi")
 def predict_kondisi(data: AIInput):
