@@ -574,6 +574,35 @@ export default function RekomendasiPage() {
                 </div>
               </div>
 
+              {/* SECTION 4: SmartSpend AI (Generative AI) */}
+              <div style={{ background: 'white', borderRadius: '16px', border: '0.5px solid #e4e7ec', overflow: 'hidden' }}>
+                <div style={{ padding: '18px 24px', borderBottom: '0.5px solid #e4e7ec', display: 'flex', alignItems: 'center', gap: '10px', background: 'linear-gradient(135deg, #fff8f0, #fef6e7)' }}>
+                  <div style={{
+                    width: '36px', height: '36px', borderRadius: '10px',
+                    background: 'linear-gradient(135deg, #f79009, #b54708)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px'
+                  }}>✨</div>
+                  <div>
+                    <p style={{ fontSize: '15px', fontWeight: '600', color: '#101828', margin: 0 }}>SmartSpend AI</p>
+                    <p style={{ fontSize: '12px', color: '#667085', margin: 0 }}>Powered by Generative AI · Saran personal berbasis data keuanganmu</p>
+                  </div>
+                </div>
+
+                <div style={{ padding: '24px' }}>
+                  {data.saran_ai ? (
+                    <p style={{ fontSize: '14px', color: '#344054', lineHeight: 1.8, margin: 0 }}>
+                      {data.saran_ai}
+                    </p>
+                  ) : (
+                    <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                      <p style={{ fontSize: '14px', color: '#667085', margin: 0 }}>
+                        ✨ Saran AI sedang disiapkan...
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/*Action buttons*/}
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button onClick={fetchRecommendation} style={{
