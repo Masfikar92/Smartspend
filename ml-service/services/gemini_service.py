@@ -23,7 +23,7 @@ else:
     logger.warning("GEMINI_API_KEY not set — SmartSpend AI will return fallback.")
 
 # ─── Model Config ─────────────────────────────────────────────────────────────
-MODEL_NAME = "gemini-1.5-flash"
+MODEL_NAME = "gemini-3.5-flash"
 MAX_TOKENS     = 1500
 TEMPERATURE    = 0.7
 TIMEOUT_SECS   = 25
