@@ -91,9 +91,9 @@ Smartspend/
 │   │   ├── pages/
 │   │   └── ...
 │   └── package.json
-├── Ml-Service/             
+├── ml-service/             
 │   ├── models
-│   ├── service
+│   ├── services
 │   ├── main.py
 │   └── requirements.txt
 ├── .gitignore
