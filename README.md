@@ -117,7 +117,7 @@ Smartspend/
 - **Jupyter Notebook** — Eksplorasi & dokumentasi model
 
 ### Database
-- **MongoDB / MySQL** *(sesuaikan dengan implementasi aktual)*
+- **MySQL**
 
 ---
 
