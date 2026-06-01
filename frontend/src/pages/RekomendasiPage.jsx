@@ -247,6 +247,58 @@ function KondisiBadge({ kondisi }) {
   );
 }
 
+// ─── SmartSpend AI Renderer ─────────────────────────────────────────────────
+// Mengubah output teks Gemini menjadi JSX yang rapi tanpa simbol markdown
+function renderSaranAI(text) {
+  if (!text) return null;
+  const HEADING_EMOJIS = ['📊','💸','🐷','📋','🎯','⚠️','✨','⚡','💪','🔍','📈','💡'];
+  const lines = text.split('\n');
+  const elements = [];
+  let key = 0;
+
+  for (let i = 0; i < lines.length; i++) {
+    const trimmed = lines[i].trim();
+
+    if (trimmed === '') {
+      elements.push(<div key={key++} style={{ height: '8px' }} />);
+      continue;
+    }
+
+    const isHeading = HEADING_EMOJIS.some(e => trimmed.startsWith(e));
+    if (isHeading) {
+      elements.push(
+        <div key={key++} style={{
+          fontSize: '14px', fontWeight: '700', color: '#101828',
+          lineHeight: 1.5, paddingBottom: '6px',
+          borderBottom: '1px solid #f0f0f0',
+          marginTop: i === 0 ? '0' : '12px', marginBottom: '8px',
+        }}>
+          {trimmed}
+        </div>
+      );
+      continue;
+    }
+
+    if (trimmed.startsWith('- ') || trimmed.startsWith('• ')) {
+      const content = trimmed.replace(/^[-•]\s+/, '');
+      elements.push(
+        <div key={key++} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '8px', paddingLeft: '4px' }}>
+          <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#54B5FF', flexShrink: 0, marginTop: '8px' }} />
+          <span style={{ fontSize: '14px', color: '#344054', lineHeight: 1.7, flex: 1 }}>{content}</span>
+        </div>
+      );
+      continue;
+    }
+
+    elements.push(
+      <p key={key++} style={{ fontSize: '14px', color: '#344054', lineHeight: 1.75, margin: '0 0 6px 0' }}>
+        {trimmed}
+      </p>
+    );
+  }
+  return elements;
+}
+
 //Main page
 export default function RekomendasiPage() {
   const [profileExists, setProfileExists] = useState(null); 
@@ -590,13 +642,15 @@ export default function RekomendasiPage() {
 
                 <div style={{ padding: '24px' }}>
                   {data.saran_ai ? (
-                    <p style={{ fontSize: '14px', color: '#344054', lineHeight: 1.8, margin: 0 }}>
-                      {data.saran_ai}
-                    </p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      {renderSaranAI(data.saran_ai)}
+                    </div>
                   ) : (
-                    <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                      <p style={{ fontSize: '14px', color: '#667085', margin: 0 }}>
-                        ✨ Saran AI sedang disiapkan...
+                    <div style={{ textAlign: 'center', padding: '32px 20px', background: '#f9fafb', borderRadius: '12px' }}>
+                      <p style={{ fontSize: '32px', margin: '0 0 8px' }}>✨</p>
+                      <p style={{ fontSize: '14px', fontWeight: '600', color: '#344054', margin: '0 0 6px' }}>Analisis AI belum tersedia</p>
+                      <p style={{ fontSize: '13px', color: '#667085', margin: 0, lineHeight: 1.6 }}>
+                        Gunakan Rekomendasi Budgeting dan Prediksi Kondisi di atas sebagai panduan keuanganmu.
                       </p>
                     </div>
                   )}

@@ -121,7 +121,9 @@ const getRecommendation = async (req, res) => {
       axios.post(`${ML_SERVICE}/predict/cluster`, dsPayload),
     ]);
 
-    // New: Panggil SmartSpend AI (GenAI)
+    // ── 8. Panggil SmartSpend AI (GenAI) ─────────────────────────────────────
+    // Dilakukan setelah DL+DS selesai karena membutuhkan output mereka.
+    // Jika gagal, saran_ai = null dan frontend menampilkan fallback message.
     let saran_ai = null;
     try {
       const aiAnalysisPayload = {
@@ -140,16 +142,18 @@ const getRecommendation = async (req, res) => {
           provinsi          : profile.provinsi           || 'DKI Jakarta',
         },
         budget_5030_20 : budget_5030_20,
-        kategori       : catMap,
+        kategori       : catMap,   // breakdown pengeluaran per kategori
+        user_name      : full_name, // nama lengkap untuk dipanggil SmartSpend AI
       };
-
+ 
       const aiAnalysisResponse = await axios.post(
         `${ML_SERVICE}/analyze/smartspend-ai`,
         aiAnalysisPayload,
-        { timeout: 35000 }
+        { timeout: 35000 }   // 35 detik timeout (Gemini bisa lambat)
       );
       saran_ai = aiAnalysisResponse.data.saran_ai || null;
     } catch (genaiError) {
+      // Log error tapi jangan fail seluruh request
       console.error('[SmartSpend AI] GenAI call failed:', genaiError.message);
       saran_ai = null;   // Frontend handle: tampilkan "Saran AI sedang disiapkan..."
     }
