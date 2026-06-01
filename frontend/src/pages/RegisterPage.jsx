@@ -126,7 +126,7 @@ export default function RegisterPage() {
             disabled={loading}
             style={{ width: '100%', backgroundColor: '#0083E9', color: 'white', fontWeight: '700', padding: '12px', borderRadius: '12px', border: 'none', cursor: 'pointer', fontSize: '18px' }}
           >
-            {loading ? 'Memproses...' : 'Sign In'}
+            {loading ? 'Memproses...' : 'Sign Up'}
           </button>
         </form>
 
@@ -140,7 +140,7 @@ export default function RegisterPage() {
           onClick={() => window.location.href = 'https://smartspend-production-c4da.up.railway.app/api/auth/google'}
           className="w-full border border-gray-300 rounded-xl py-3 flex items-center justify-center gap-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">
           <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" />
-          Sign In dengan Google
+          Sign Up dengan Google
         </button>
 
         <p className="text-center text-sm text-gray-500 mt-4">
