@@ -41,6 +41,13 @@ const getRecommendation = async (req, res) => {
     );
     const profile = profiles[0] || {};
 
+    const [userRows] = await db.query(
+      `SELECT full_name FROM users WHERE id = ? LIMIT 1`,
+      [user_id]
+    );
+    const full_name = userRows[0]?.full_name || 'Bro';
+
+
     const tabungan_dicatat  = catMap['Tabungan'] || 0;
     const expense_for_model = expense - tabungan_dicatat;
     const saving_for_model  = income - expense_for_model;
