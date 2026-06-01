@@ -114,7 +114,7 @@ Smartspend/
 - **JWT** — Autentikasi
 - **bcrypt** — Enkripsi password
 
-### AI / Machine Learning
+### AI / Data Science
 - **Python** — Bahasa pemrograman utama
 - **TensorFlow / Keras** — Deep Learning framework
 - **scikit-learn** — Preprocessing & evaluasi model
