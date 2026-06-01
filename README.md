@@ -290,8 +290,12 @@ Proyek ini dikembangkan oleh tim **Capstone Coding Camp**:
 
 | Nama | Role |
 |---|---|
-| Masfikar92 | Full Stack / Project Lead |
-| *(anggota lain)* | *(tambahkan sesuai tim)* |
+| Muhammad Zulfikar | Data Scienctist / Project Lead |
+| Akmal Farhan Hidayat | Data Scientist |
+| Gagah Didjaya Anbarosi | Fullstack Developer |
+| Angger Dwi Cahyo | Fullstack Developer |
+| Fani Lestari | AI Engineer |
+| Adila Ramdhan Ma'Ruf | AI Engineer |
 
 ---
 
