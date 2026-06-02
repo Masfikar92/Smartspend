@@ -78,20 +78,20 @@ Smartspend/
 │   ├── notebooks/       # EDA, preprocessing, visualisasi
 │   ├── data/            # Dataset (dummy/sample)
 │   └── ...
-├── backend/             # REST API (Node.js)
-│   ├── controllers/
+├── backend/             # REST API (Node.js + Express)
+│   ├── controllers/     
 │   ├── routes/
 │   ├── models/
 │   ├── middleware/
 │   ├── app.js
 │   └── package.json
-├── frontend/            # Antarmuka pengguna (JavaScript)
+├── frontend/            # Antarmuka pengguna (React + Vite)
 │   ├── src/
 │   │   ├── components/
 │   │   ├── pages/
 │   │   └── ...
 │   └── package.json
-├── ml-service/             
+├── ml-service/          # ML Service (FastAPI + Python)      
 │   ├── models
 │   ├── services
 │   ├── main.py
@@ -105,14 +105,24 @@ Smartspend/
 ## Tech Stack
 
 ### Frontend
-- **React.js** — Library UI
-- **Tailwind CSS / CSS Modules** — Styling
+- **React.js + Vite** — Library UI & build tool
+- **React Router** — Client-side routing
+- **Tailwind CSS** — Utility classes (partial)
 - **Axios** — HTTP Client
+- **Recharts** — Visualisasi grafik keuangan
+- **React Icons** — Icon library
 
 ### Backend
 - **Node.js + Express.js** — REST API Server
-- **JWT** — Autentikasi
+- **JWT** — Autentikasi token
 - **bcrypt** — Enkripsi password
+- **MySQL** — Database relasional
+- **Passport.js** — Google OAuth2
+
+### ML Service
+- **FastAPI** — API server untuk model ML
+- **TensorFlow / Keras** — Deep Learning framwork (AI model)
+- **scikit-learn** — KMeaqns Clustering (DS model)
 
 ### AI / Data Science
 - **Python** — Bahasa pemrograman utama
@@ -131,10 +141,10 @@ Smartspend/
 ### Prasyarat
 
 Pastikan sudah terinstall:
-- [Node.js](https://nodejs.org/) v16+
-- [Python](https://www.python.org/) 3.8+
+- [Node.js](https://nodejs.org/) v18+
+- [Python](https://www.python.org/) 3.11
+- [MySQL](https://www.mysql.com/) 8.0+
 - [Git](https://git-scm.com/)
-- npm atau yarn
 
 ---
 
@@ -147,7 +157,19 @@ cd Smartspend
 
 ---
 
-### 2. Menjalankan Backend
+### 2. Setup Database
+
+Jalankan MySQL dan buat database:
+
+```sql
+CREATE DATABASE smartspend;
+```
+
+Import schema tabel yang dibutuhkan (transactions, users, saving_goals, user_profiles).
+
+---
+
+### 3. Menjalankan Backend
 
 ```bash
 cd backend
@@ -157,106 +179,99 @@ npm install
 Buat file `.env` di dalam folder `backend/`:
 
 ```env
-PORT=5000
+PORT=3000
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=your_password
+DB_NAME=smartspend
 JWT_SECRET=your_jwt_secret_key
-DATABASE_URL=your_database_connection_string
+FRONTEND_URL=http://localhost:5173
+SESSION_SECRET=your_session_secret
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
 ```
 
 Jalankan server:
 
 ```bash
-npm start
-# atau mode development:
 npm run dev
 ```
 
-Server akan berjalan di: `http://localhost:5000`
+Server akan berjalan di: `http://localhost:3000`
 
 ---
 
-### 3. Menjalankan Frontend
+### 4. Menjalankan Frontend
 
 ```bash
-cd ../frontend
+cd frontend
 npm install
+npm run dev
 ```
 
-Buat file `.env` di dalam folder `frontend/`:
-
-```env
-REACT_APP_API_URL=http://localhost:5000
-```
-
-Jalankan aplikasi:
-
-```bash
-npm start
-```
-
-Aplikasi akan terbuka di: `http://localhost:3000`
+Aplikasi akan berjalan di: `http://localhost:5173`
 
 ---
 
-### 4. Menjalankan Model AI
+### 5. Menjalankan ML Service
 
 ```bash
-cd ../AI_Project
-pip install -r requirements.txt
-jupyter notebook
+cd ml-service
+py -3.11 -m pip install -r requirements.txt
+py -3.11 -m uvicorn main:app --reload --port 8000
 ```
 
-Buka notebook yang tersedia untuk:
-- Melihat proses training model
-- Menjalankan prediksi secara lokal
-- Mengekspor model ke format yang digunakan backend
+ML Service akan berjalan di: `http://localhost:8000`
+
+> **Catatan:** Python 3.11 diperlukan karena TensorFlow belum mendukung Python 3.12+
 
 ---
 
 ## Model AI & Data Science
 
-### Folder `AI_Project`
-Berisi pipeline lengkap model prediksi kondisi keuangan:
-- **Preprocessing** data keuangan pengguna
-- **Training** model klasifikasi berbasis Deep Learning
-- **Evaluasi** menggunakan metrik akurasi, precision, recall, F1-score
-- **Export** model untuk digunakan di backend
+### AI Model (Deep Learning)
+Lokasi: `AI_Project/` dan `ml-service/models/ai/`
 
-### Folder `DS_Project`
-Berisi analisis data eksplorasi (EDA):
-- Distribusi data keuangan
-- Korelasi antar fitur
-- Visualisasi insight keuangan
+- **Arsitektur:** Multi-output Neural Network
+- **Output 1:** Klasifikasi kondisi keuangan (3 kelas)
+- **Output 2:** Regresi nominal tabungan ideal (Rp)
+- **Akurasi klasifikasi:** 88%
+- **MAE regresi:** ~Rp 100.572
 
-### Label Klasifikasi Model
+### DS Model (KMeans Clustering)
+Lokasi: `DS_Project/` dan `ml-service/models/ds/`
 
-| Label | Deskripsi |
-|---|---|
-| `Keuangan Sehat` | Rasio tabungan ≥ ideal, pengeluaran terkendali |
-| `Cukup Baik` | Tabungan ada namun belum optimal |
-| `Perlu Perbaikan` | Pengeluaran mendekati atau melebihi pemasukan |
+- **Algoritma:** KMeans dengan 3 cluster
+- **Cluster 0:** Pengelola Menengah
+- **Cluster 1:** Pengelola Hemat
+- **Cluster 2:** Pengelola Mapan
+- **Output:** Segmentasi profil + rekomendasi budgeting dinamis
 
-### Contoh Input-Output Model
+### Contoh Input-Output
 
 **Input:**
 ```json
 {
-  "pemasukan": 2000000,
-  "pengeluaran": 735000,
-  "rasio_tabungan": 63.2
+  "pendapatan_bulanan": 5000000,
+  "total_pengeluaran": 3500000,
+  "rasio_tabungan_persen": 30.0,
+  "provinsi": "DI Yogyakarta",
+  "usia": 25
 }
 ```
 
-**Output:**
+**Output AI Model:**
 ```json
 {
-  "kondisi": "Keuangan Sehat",
-  "confidence": 0.85,
-  "distribusi": {
-    "Cukup Baik": 0.003,
-    "Keuangan Sehat": 0.85,
-    "Perlu Perbaikan": 0.147
+  "kondisi_keuangan": "Keuangan Sehat",
+  "confidence": 0.92,
+  "probabilities": {
+    "Keuangan Sehat": 0.92,
+    "Cukup Baik": 0.06,
+    "Perlu Perbaikan": 0.02
   },
-  "tabungan_ideal": 1600000
+  "rekomendasi_tabungan": 1000000,
+  "pesan": "Keuangan Anda sangat baik! Pertahankan dan tingkatkan investasi."
 }
 ```
 
@@ -264,25 +279,50 @@ Berisi analisis data eksplorasi (EDA):
 
 ## API Endpoints
 
+### Auth
 | Method | Endpoint | Deskripsi |
 |---|---|---|
 | `POST` | `/api/auth/register` | Registrasi pengguna baru |
-| `POST` | `/api/auth/login` | Login & mendapat token |
-| `GET` | `/api/dashboard` | Data ringkasan keuangan |
-| `POST` | `/api/transaksi` | Tambah transaksi baru |
-| `GET` | `/api/transaksi` | Riwayat transaksi |
-| `POST` | `/api/predict` | Prediksi kondisi keuangan (AI) |
-| `GET` | `/api/target` | Lihat target tabungan |
-| `PUT` | `/api/target` | Update target tabungan |
+| `POST` | `/api/auth/login` | Login & mendapat JWT token |
+| `GET` | `/api/auth/google` | Login via Google OAuth |
+
+### Transaksi
+| Method | Endpoint | Deskripsi |
+|---|---|---|
+| `GET` | `/api/transactions` | Ambil riwayat transaksi |
+| `POST` | `/api/transactions` | Tambah transaksi baru |
+| `DELETE` | `/api/transactions/:id` | Hapus transaksi |
+| `GET` | `/api/transactions/summary` | Ringkasan keuangan bulanan |
+| `GET` | `/api/transactions/chart` | Data grafik 6 bulan terakhir |
+
+### Target Tabungan
+| Method | Endpoint | Deskripsi |
+|---|---|---|
+| `GET` | `/api/savings` | Ambil semua target tabungan |
+| `POST` | `/api/savings` | Buat target tabungan baru |
+| `PUT` | `/api/savings/:id/progress` | Update progres tabungan |
+| `DELETE` | `/api/savings/:id` | Hapus target tabungan |
+
+### Rekomendasi & Prediksi
+| Method | Endpoint | Deskripsi |
+|---|---|---|
+| `GET` | `/api/recommendation` | Prediksi kondisi keuangan + rekomendasi budgeting |
+
+### Profil
+| Method | Endpoint | Deskripsi |
+|---|---|---|
+| `GET` | `/api/profile` | Ambil profil demografi user |
+| `POST` | `/api/profile` | Simpan/update profil demografi |
+
+### User
+| Method | Endpoint | Deskripsi |
+|---|---|---|
+| `GET` | `/api/user/me` | Data user yang sedang login |
+| `PUT` | `/api/user/update` | Update nama lengkap |
+| `PUT` | `/api/user/password` | Ganti password |
 
 ---
 
-## Screenshot
-
-### Dashboard & Rekomendasi AI
-> Tampilan utama menampilkan ringkasan keuangan dan hasil prediksi model AI secara real-time, termasuk distribusi probabilitas kondisi keuangan pengguna.
-
----
 
 ## 👨‍💻 Tim Pengembang
 
