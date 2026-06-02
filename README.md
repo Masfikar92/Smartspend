@@ -246,6 +246,11 @@ Lokasi: `DS_Project/` dan `ml-service/models/ds/`
 - **Cluster 2:** Pengelola Mapan
 - **Output:** Segmentasi profil + rekomendasi budgeting dinamis
 
+  ### Download Model
+Model sudah tersedia langsung di repositori ini:
+- AI Model (.h5): `ml-service/models/ai/`
+- DS Model (.pkl): `ml-service/models/ds/`
+
 ### Contoh Input-Output
 
 **Input:**
