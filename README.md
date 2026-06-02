@@ -20,7 +20,6 @@
   - [4. Menjalankan Model AI](#4-menjalankan-model-ai)
 - [Model AI & Data Science](#model-ai--data-science)
 - [API Endpoints](#api-endpoints)
-- [Screenshot](#screenshot)
 - [Tim Pengembang](#tim-pengembang)
 
 ---
